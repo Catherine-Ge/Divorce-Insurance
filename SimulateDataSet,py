@@ -1,0 +1,57 @@
+import pandas as pd
+import numpy as np
+
+# Load cleaned CSVs
+df_age = pd.read_csv("Divorce by Age.csv", header=None)
+df_length = pd.read_csv("Divorce by Marriage Length.csv", header=None)
+df_province = pd.read_csv("Divorce by Province.csv")
+
+# Step 1: Extract 2020 data
+age_2020 = df_age[[0, 5]].dropna()
+length_2020 = df_length[[0, 5]].dropna()
+province_2020 = df_province[df_province["Year"] == df_province["Year"].max()].drop(columns=["Year", "Canada", "Nvt."])
+province_2020_long = pd.melt(province_2020, var_name='Province', value_name='Rate')
+
+# Step 2: Clean function
+def clean_and_filter(df, rate_col):
+    df_clean = df.copy()
+    df_clean[rate_col] = pd.to_numeric(df_clean[rate_col], errors='coerce')
+    df_clean = df_clean.dropna(subset=[rate_col])
+    df_clean = df_clean[df_clean[rate_col].between(0, 100)]
+    return df_clean
+
+# Step 3: Clean each dataset
+age_clean = clean_and_filter(age_2020, 5)
+age_clean = age_clean[age_clean[0] != "All ages"]  # remove 'All ages'
+length_clean = clean_and_filter(length_2020, 5)
+prov_clean = clean_and_filter(province_2020_long, "Rate")
+
+# Rename columns for merge clarity
+age_clean.columns = ['AgeGroup', 'AgeRate']
+length_clean.columns = ['YearsTogether', 'LengthRate']
+prov_clean.columns = ['Province', 'ProvRate']
+
+# Step 4: Create combinations of (age, duration, province)
+combinations = pd.merge(age_clean, length_clean, how='cross')
+combinations = pd.merge(combinations, prov_clean, how='cross')
+combinations["CombinedRate"] = combinations[["AgeRate", "LengthRate", "ProvRate"]].mean(axis=1)
+
+# Step 5: Simulate binary outcomes from combined rate
+def simulate_combination(row, n=10):
+    prob = row["CombinedRate"] / 100
+    outcomes = np.random.binomial(1, prob, n)
+    return pd.DataFrame({
+        "AgeGroup": [row["AgeGroup"]] * n,
+        "YearsTogether": [row["YearsTogether"]] * n,
+        "Province": [row["Province"]] * n,
+        "Divorced": outcomes
+    })
+
+# Step 6: Generate final dataset
+simulated_rows = pd.concat([simulate_combination(row) for _, row in combinations.iterrows()], ignore_index=True)
+
+# Step 7: Save to CSV (optional)
+simulated_rows.to_csv("simulated_divorce_final.csv", index=False)
+
+# Preview
+print(simulated_rows.head())
