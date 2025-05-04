@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, f1_score
 from imblearn.over_sampling import SMOTE
 
-from threshold_tuner import find_best_threshold  # ✅ import from other file
+from threshold_tuner import find_best_threshold  # import from other file
 
 # === STEP 1: Load and prepare data ===
 df = pd.read_csv("simulated_divorce_final.csv")
