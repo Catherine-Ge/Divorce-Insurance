@@ -1,0 +1,5 @@
+Model,Threshold,Accuracy (%),Precision (Divorced=1),Recall (Divorced=1),F1 Score (Divorced=1)
+Logistic Regression,0.25,11.01,0.11,1.0,0.2
+Random Forest,0.1,46.75,0.11,0.56,0.19
+Tuned Random Forest,0.1,40.4,0.11,0.64,0.19
+Logistic Regression (Best Precision),0.4,33.32,0.12,0.78,0.21
