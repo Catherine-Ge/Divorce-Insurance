@@ -1,6 +1,6 @@
 import os
 import joblib
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pandas as pd
 
@@ -32,6 +32,8 @@ def send_email(to_address, subject, body):
         server.send_message(msg)
 
 @app.route("/predict", methods=["POST"])
+def serve_index():
+    return send_from_directory(app.static_folder, "index.html")
 def predict():
     data = request.json
     df = pd.DataFrame([data])
