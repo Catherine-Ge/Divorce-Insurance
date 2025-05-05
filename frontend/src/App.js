@@ -65,10 +65,19 @@ function App() {
         <label>Province:
           <select name="Province" onChange={handleChange} required>
             <option value="">Select</option>
-            <option value="ON">Ontario</option>
-            <option value="QC">Quebec</option>
-            <option value="BC">British Columbia</option>
-            <option value="AB">Alberta</option>
+            <option value="N.L.">Newfoundland and Labrador</option>
+            <option value="P.E.I.">Prince Edward Island</option>
+            <option value="N.S.">Nova Scotia</option>
+            <option value="N.B.">New Brunswick</option>
+            <option value="Que.">Quebec</option>
+            <option value="Ont.">Ontario</option>
+            <option value="Man.">Manitoba</option>
+            <option value="Sask.">Saskatchewan</option>
+            <option value="Alta.">Alberta</option>
+            <option value="B.C.">British Columbia</option>
+            <option value="Y.T.">Yukon</option>
+            <option value="N.W.T.">Northwest Territories</option>
+            <option value="Nvt.">Nunavut</option>
           </select>
         </label>
         <br /><br />
