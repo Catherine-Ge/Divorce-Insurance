@@ -26,6 +26,14 @@ def predict():
     premium = base_premium + proba * 1000
     payout = 10000 if proba > 0.5 else 5000
 
+    if "email" in data:
+         quote_text = f"""Thank you for using Divorce Insurance!
+        Estimated Divorce Risk: {round(proba * 100, 1)}%
+        Premium: ${round(premium, 2)}
+        Payout on Divorce: ${payout}
+    """
+    send_email(data["email"], "Your Divorce Insurance Quote", quote_text)
+
     return jsonify({
         "divorce_risk": round(proba, 3),
         "premium": round(premium, 2),
@@ -34,3 +42,19 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+import smtplib
+from email.mime.text import MIMEText
+
+def send_email(to_address, subject, body):
+    from_address = "your.email@example.com"
+    password = "your-app-password"
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = from_address
+    msg["To"] = to_address
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(from_address, password)
+        server.send_message(msg)

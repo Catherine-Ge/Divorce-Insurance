@@ -89,6 +89,17 @@ function App() {
         <br /><br />
 
         <button type="submit">Get My Quote</button>
+
+        <label>Email:
+          <input
+          type="email"
+          name="email"
+          value={formData.email || ""}
+          onChange={handleChange}
+          required
+          />
+        </label>
+
       </form>
 
       {result && (
