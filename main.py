@@ -1,5 +1,5 @@
-from logistic_model import train_logistic
-from predict_quote import predict_quote
+from Insurance.logistic_model import train_logistic
+from Insurance.predict_quote import predict_quote
 
 # Train the model
 model, encoder, X_test, y_test = train_logistic("simulated_divorce_final.csv", use_smote=True)
