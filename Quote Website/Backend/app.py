@@ -58,9 +58,6 @@ def predict():
         "payout": payout
     })
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
 import os
 
 if __name__ == "__main__":
