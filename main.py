@@ -4,8 +4,8 @@ from predict_quote import predict_quote
 # Train the model
 model, encoder, X_test, y_test = train_logistic("simulated_divorce_final.csv", use_smote=True)
 
-# Find best threshold
-threshold = 0.25
+# Best threshold
+threshold = 0.3
 
 # Predict user quote
 result = predict_quote(

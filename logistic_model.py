@@ -26,3 +26,11 @@ def train_logistic(csv_path="simulated_divorce_final.csv", use_smote=False):
     model.fit(X_train, y_train)
 
     return model, encoder, X_test, y_test
+
+model, encoder, X_test, y_test = train_logistic(csv_path="simulated_divorce_final.csv", use_smote=True)
+
+import joblib
+joblib.dump(model, "logistic_model.pkl")
+joblib.dump(encoder, "onehot_encoder.pkl")
+
+print("✅ Model and encoder saved successfully.")
