@@ -4,8 +4,8 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pandas as pd
 
-app = Flask(__name__)
-CORS(app)  # allow frontend to connect
+app = Flask(__name__, static_folder='build', static_url_path='')
+CORS(app)
 
 # Get project root
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -31,9 +31,15 @@ def send_email(to_address, subject, body):
         server.login(from_address, password)
         server.send_message(msg)
 
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(app.static_folder, 'index.html')
+
 @app.route("/predict", methods=["POST"])
-def serve_index():
-    return send_from_directory(app.static_folder, "index.html")
 def predict():
     data = request.json
     df = pd.DataFrame([data])
