@@ -52,13 +52,19 @@ function App() {
         <br /><br />
 
         <label>Years Together:
-          <input
-            type="number"
-            name="YearsTogether"
-            onChange={handleChange}
-            required
-            min="0"
-          />
+          <select name="YearsTogether" onChange={handleChange} required>
+            <option value="">Select</option>
+            <option value="1 year">1 year</option>
+            <option value="2 years">2 years</option>
+            <option value="3 years">3 years</option>
+            <option value="4 years">4 years</option>
+            <option value="5 years">5 years</option>
+            <option value="6 years">6 years</option>
+            <option value="7 years">7 years</option>
+            <option value="8 years">8 years</option>
+            <option value="9 years">9 years</option>
+            <option value="10 years or more">10 years or more</option>
+          </select>
         </label>
         <br /><br />
 

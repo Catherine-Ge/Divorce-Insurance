@@ -1,14 +1,19 @@
+import os
+import joblib
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import joblib
 import pandas as pd
 
 app = Flask(__name__)
 CORS(app)  # allow frontend to connect
 
+# Get project root
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+model_dir = os.path.join(root_dir, "insurance_design")
+
 # Load model and encoder
-model = joblib.load("Insurance Design/logistic_model.pkl")
-encoder = joblib.load("Insurance Design/onehot_encoder.pkl")
+model = joblib.load(os.path.join(model_dir, "logistic_model.pkl"))
+encoder = joblib.load(os.path.join(model_dir, "onehot_encoder.pkl"))
 
 @app.route("/predict", methods=["POST"])
 def predict():
