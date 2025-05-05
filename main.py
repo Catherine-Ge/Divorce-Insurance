@@ -1,12 +1,11 @@
 from logistic_model import train_logistic
-from threshold_tuner import find_best_threshold
-from dropped_predict_quote import predict_quote
+from predict_quote import predict_quote
 
 # Train the model
 model, encoder, X_test, y_test = train_logistic("simulated_divorce_final.csv", use_smote=True)
 
 # Find best threshold
-best_threshold = find_best_threshold(model, X_test, y_test)
+threshold = 0.25
 
 # Predict user quote
 result = predict_quote(
@@ -15,5 +14,5 @@ result = predict_quote(
     province="Ont.",
     model=model,
     encoder=encoder,
-    threshold=best_threshold
+    threshold=threshold
 )
