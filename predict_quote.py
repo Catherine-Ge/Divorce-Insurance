@@ -1,6 +1,6 @@
 import pandas as pd
 
-def predict_quote(age_group, years_together, province, model, encoder, threshold=0.4, cost=15000, margin=1.2):
+def predict_quote(age_group, years_together, province, model, encoder, threshold=0.25, cost=15000, margin=1.2):
     # Prepare input
     user_input = pd.DataFrame([[age_group, years_together, province]], columns=["AgeGroup", "YearsTogether", "Province"])
 

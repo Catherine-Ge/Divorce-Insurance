@@ -29,7 +29,7 @@ model = LogisticRegression(max_iter=1000, class_weight='balanced')
 model.fit(X_train_res, y_train_res)
 
 # === STEP 2: Point the threshold
-threshold = 0.25
+threshold = 0.3
 
 # === STEP 3: Predict and evaluate ===
 probs = model.predict_proba(X_test)[:, 1]
