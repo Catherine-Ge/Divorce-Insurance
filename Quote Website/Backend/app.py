@@ -15,10 +15,28 @@ model_dir = os.path.join(root_dir, "insurance_design")
 model = joblib.load(os.path.join(model_dir, "logistic_model.pkl"))
 encoder = joblib.load(os.path.join(model_dir, "onehot_encoder.pkl"))
 
+import smtplib
+from email.mime.text import MIMEText
+
+def send_email(to_address, subject, body):
+    from_address = "6556catherine@gmail.com"
+    password = "nzqh dwqd ocui thdb"
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = from_address
+    msg["To"] = to_address
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(from_address, password)
+        server.send_message(msg)
+
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.json
     df = pd.DataFrame([data])
+    if "email" in df.columns:
+        df = df.drop(columns=["email"])  #remove the email before encoding
     X = encoder.transform(df)
     proba = model.predict_proba(X)[0][1]
 
@@ -42,19 +60,3 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-import smtplib
-from email.mime.text import MIMEText
-
-def send_email(to_address, subject, body):
-    from_address = "your.email@example.com"
-    password = "your-app-password"
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = from_address
-    msg["To"] = to_address
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(from_address, password)
-        server.send_message(msg)
