@@ -1,5 +1,5 @@
-Flask
-pandas
+
+flask
 scikit-learn
+pandas
 joblib
-flask-cors
