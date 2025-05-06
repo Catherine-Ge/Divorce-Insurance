@@ -116,6 +116,3 @@ Where:
 
 This simulates real-world actuarial pricing logic.
 
-## 🙌 Acknowledgements
-
-This is a self-initiated project combining interests in actuarial science, web development, and machine learning. It is not a real insurance product but rather a demonstration of data-driven premium modeling.
