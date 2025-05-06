@@ -28,6 +28,8 @@ def send_email(to_address, subject, body):
     msg["To"] = to_address
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        print(f"EMAIL_USER: {from_address}")
+        print(f"EMAIL_PASS exists: {bool(password)}")
         server.login(from_address, password)
         server.send_message(msg)
 
