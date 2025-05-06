@@ -20,7 +20,7 @@ from email.mime.text import MIMEText
 
 def send_email(to_address, subject, body):
     from_address = "6556catherine@gmail.com"
-    password = "nzqh dwqd ocui thdb"
+    password = os.environ.get("GMAIL_APP_PASSWORD")
 
     msg = MIMEText(body)
     msg["Subject"] = subject
