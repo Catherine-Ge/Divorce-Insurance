@@ -27,92 +27,124 @@ This project combines web development with actuarial and machine learning princi
 
 - **Output**: The model predicts a probability of divorce. This prediction is then translated into a premium using a formula (e.g., base rate + margin × predicted risk), simulating how insurers price policies based on perceived risk.
 
-### 💾 Deployment Strategy
+### Deployment and repository layout
 
-- The trained model and encoder are saved as `.pkl` files using `joblib` and loaded by the backend during quote generation.
+This repository contains the frontend, deployable backend, and model research.
+The backend was consolidated from `Catherine-Ge/divorce-insurance-backend`.
+The frontend calls the backend over HTTP; the two deployments remain separate.
 
-## 🧪 Features
-
-- Predicts the likelihood of divorce based on user inputs
-- Dynamically generates insurance premium quotes
-- Clean, responsive React frontend
-- Lightweight Python backend to handle model logic and API requests
-
-## 🛠 Tech Stack
-
-- **Frontend**: React 19, hosted via GitHub Pages
-- **Backend**: Flask (locally), with model logic in Python
-- **ML/DS Libraries**: `pandas`, `scikit-learn`, `joblib`, `imblearn`
-- **Deployment**: Frontend live via GitHub Pages, backend run locally or deployable via Render or similar services
-
-## 📂 Project Structure
-
-```
+```text
 Divorce-Insurance/
-├── public/
-│   └── index.html
-├── src/
-│   ├── App.js
-│   ├── components/
-│   └── ...
-├── backend/
-│   ├── logistic_model.py       # Trains and saves the model
-│   ├── predict_quote.py        # Loads model and calculates quotes
-│   ├── utils/                  # Helper functions
-│   └── simulated_divorce_final.csv
-├── .gitignore
-├── package.json
-├── render.yaml
+├── frontend/           React source and GitHub Pages deployment
+├── backend/            Flask API, saved model/encoder, bundled legacy frontend
+├── insurance_design/   Dataset generation, training, and analysis
+├── Models (not chosen)/ Alternative model experiments
+├── render.yaml         Render configuration (rootDir: backend)
 └── README.md
 ```
 
-## 🚀 How to Run Locally
+The model and encoder in `backend/` are byte-for-byte copies of the existing
+deployed backend artifacts. Training scripts in `insurance_design/` are for
+research; retraining does not automatically update the deployed copies.
+
+## Request flow
+
+1. GitHub Pages serves the React frontend.
+2. `frontend/src/App.js` posts age group, years together, province, and email to
+   `https://divorce-insurance-backend.onrender.com/predict`.
+3. `backend/app.py` loads its local model and encoder, predicts divorce risk,
+   calculates the quote, sends it through Gmail SMTP, and returns JSON.
+4. The frontend displays the risk, premium, and payout.
+
+The preserved quote formula is `500 + probability * 1000`.
+Payout is $10,000 when probability exceeds 0.5, otherwise $5,000.
+This is a conceptual project using simulated data.
+
+## Run locally
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+
+Set `EMAIL_USER` and `EMAIL_PASS` in your shell before starting the backend.
+Use the Gmail credentials already configured for the existing service;
+do not commit credentials. Quote requests currently send email synchronously,
+so working SMTP credentials are needed to complete a quote request.
 
 ### Frontend
 
 ```bash
-cd Divorce-Insurance
+cd frontend
 npm install
 npm start
 ```
 
-### Backend
+The frontend currently calls the hosted Render API even when running locally.
+To use the local Flask server, temporarily change the fetch URL in
+`frontend/src/App.js` to `http://127.0.0.1:5000/predict`; restore the hosted
+URL before publishing.
 
-1. Create a virtual environment:
+## Deploy
 
-```bash
-python -m venv venv
-source venv/bin/activate   # or venv\Scripts\activate on Windows
-```
-
-2. Install requirements:
+### GitHub Pages
 
 ```bash
-pip install -r requirements.txt
+cd frontend
+npm install
+npm run deploy
 ```
 
-3. Train and save the model:
+This builds and publishes to the `gh-pages` branch. Merging a source change
+into `main` does not itself rebuild GitHub Pages.
 
-```bash
-python logistic_model.py
-```
+### Migrate the existing Render service
 
-4. Run the backend server:
+Merge the consolidation pull request before switching the service.
 
-```bash
-python predict_quote.py
-```
+1. Open the existing `divorce-insurance-backend` service in Render.
+2. Change its connected repository to `Catherine-Ge/Divorce-Insurance` and use
+   branch `main`. If the repo is unavailable, grant the Render GitHub integration
+   access to it.
+3. Set Root Directory to `backend`.
+4. Set Build Command to `pip install -r requirements.txt`.
+5. Set Start Command to `python app.py`.
+6. Keep the existing `EMAIL_USER` and `EMAIL_PASS` environment variables.
+7. Deploy the latest commit and inspect the logs.
+8. Submit a quote from the GitHub Pages website with an email address you control.
+   Verify the displayed risk, premium, payout, and receipt of the quote email.
 
-## 📊 Example: Premium Formula
+Reuse the existing service to preserve its URL. If Render requires a replacement
+service, keep the old service running while you create and test the replacement,
+then update `frontend/src/App.js` to the new URL and run `npm run deploy`.
+Keep the old repository available until the service switch and quote checks pass.
+Then archive it before considering deletion.
 
-```python
-premium = base_premium + predicted_probability * risk_multiplier
-```
+The root `render.yaml` describes the backend service for Blueprint deployments.
+Committing it does not automatically reconnect an existing manually configured
+Render service. Do not create a second service merely to apply this migration.
 
-Where:
-- `base_premium` is a flat fee
-- `predicted_probability` is the model's output
-- `risk_multiplier` adjusts based on how risky the relationship seems
+### Legacy bundled frontend
 
-This simulates real-world actuarial pricing logic.
+`backend/build/` is preserved from the old backend repository so the migration
+does not change Flask's existing static routes. Its JavaScript calls
+`127.0.0.1:5000` and is not the GitHub Pages frontend. Use `frontend/` for UI
+development. Removing those legacy static routes/build files can be a separate
+cleanup after the Render migration succeeds.
 
+## Migration validation and rollback
+
+The consolidation preserves the backend application and dependency list from the
+separate repo, including existing email and pricing behavior. Existing limitations
+(such as synchronous SMTP and limited request validation) are unchanged.
+
+If the new deployment fails, reconnect the existing Render service to
+`Catherine-Ge/divorce-insurance-backend`, reset Root Directory to the repository
+root (blank), and redeploy. No frontend endpoint change is required when the
+existing service URL is retained.

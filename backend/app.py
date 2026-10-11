@@ -8,8 +8,9 @@ app = Flask(__name__, static_folder='build', static_url_path='')
 CORS(app)
 
 # Get project root
-root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-model_dir = os.path.join(root_dir, "insurance_design")
+root_dir = os.path.abspath(os.path.dirname(__file__))
+model_dir = root_dir  # or use a subfolder if needed
+
 
 # Load model and encoder
 model = joblib.load(os.path.join(model_dir, "logistic_model.pkl"))
