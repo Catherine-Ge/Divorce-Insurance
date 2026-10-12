@@ -1,10 +1,13 @@
 services:
   - type: web
-    name: divorce-backend
+    name: divorce-insurance-backend
     runtime: python
-    buildCommand: ""
+    rootDir: "Quote Website/Backend"
+    buildCommand: pip install -r requirements.txt
     startCommand: python app.py
-    envVars:
-      - key: FLASK_ENV
-        value: production
     plan: free
+    envVars:
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
