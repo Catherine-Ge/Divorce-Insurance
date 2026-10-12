@@ -18,7 +18,7 @@ function App() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    const response = await fetch("https://divorce-insurance-backend.onrender.com/predict", {
+    const response = await fetch("https://divorce-insurance.onrender.com/predict", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
