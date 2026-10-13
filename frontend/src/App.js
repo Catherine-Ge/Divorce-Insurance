@@ -8,6 +8,8 @@ function App() {
   });
 
   const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = e => {
     setFormData({
@@ -18,6 +20,10 @@ function App() {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    setError("");
+    setResult(null);
+    setLoading(true);
+    try {
     const response = await fetch("https://divorce-insurance.onrender.com/predict", {
       method: "POST",
       headers: {
@@ -26,7 +32,13 @@ function App() {
       body: JSON.stringify(formData)
     });
     const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Unable to generate your quote.");
     setResult(data);
+    } catch (err) {
+      setError(err.message || "Unable to reach the quote service. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,7 +100,7 @@ function App() {
         </label>
         <br /><br />
 
-        <button type="submit">Get My Quote</button>
+        <button type="submit" disabled={loading}>{loading ? "Getting your quote..." : "Get My Quote"}</button>
 
         <label>Email:
           <input
@@ -102,9 +114,12 @@ function App() {
 
       </form>
 
+      {error && <p role="alert">{error}</p>}
       {result && (
         <div style={{ marginTop: "2rem" }}>
           <h3>Quote Details:</h3>
+          {result.email_status === "accepted" && <p role="status">Your quote email has been submitted. Check your inbox and spam folder.</p>}
+          {result.email_status === "failed" && <p role="alert">Your quote is ready, but we could not send the email. Please save the details below.</p>}
           <p>Estimated Divorce Risk: {(result.divorce_risk * 100).toFixed(1)}%</p>
           <p>Premium: ${result.premium}</p>
           <p>Payout on Divorce: ${result.payout}</p>
