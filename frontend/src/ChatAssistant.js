@@ -53,6 +53,11 @@ export default function ChatAssistant() {
   const bottom = useRef(null);
   const say = (role, message) => setMessages(old => [...old, { role, text: message }]);
   useEffect(() => { bottom.current?.scrollIntoView?.({ block: "nearest" }); }, [messages, step, busy]);
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener("open-insurance-chat", show);
+    return () => window.removeEventListener("open-insurance-chat", show);
+  }, []);
   const previouslyOpen = useRef(false);
   useEffect(() => {
     if (!open && previouslyOpen.current) launcher.current?.focus();
