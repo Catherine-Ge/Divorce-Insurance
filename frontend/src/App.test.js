@@ -9,6 +9,7 @@ test("original quote form remains available and quotes without requiring email",
     json: async () => ({ divorce_risk: 0.625, premium: 1124.7, payout: 10000, email_status: "not_requested" }),
   });
   render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
   expect(screen.getByRole("heading", { name: "Let's talk protection" })).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Age Group:"), { target: { value: "30 to 34 years" } });
   fireEvent.change(screen.getByLabelText("Years Together:"), { target: { value: "5 years" } });

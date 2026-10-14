@@ -11,11 +11,29 @@ afterEach(() => { jest.restoreAllMocks(); });
 test("FAQ classification sends only the public topic, never the typed personal text", async () => {
   fetch.mockImplementation(() => respond({ reply: "A single upfront payment.", source: "gemini" }));
   render(<ChatAssistant />);
+  fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
   fireEvent.change(screen.getByLabelText("Ask a product question"), { target: { value: "How is my premium calculated? My email is private@example.invalid" } });
   fireEvent.click(screen.getByRole("button", { name: "Send", exact: true }));
   await screen.findByText("A single upfront payment.");
   expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ topic: "email" });
   expect(fetch.mock.calls[0][1].body).not.toContain("private@example.invalid");
+});
+
+test("launcher opens on hover, close keeps the panel closed, and click reopens preserved chat", () => {
+  render(<ChatAssistant />);
+  const launcher = screen.getByRole("button", { name: "Open chat assistant" });
+  expect(screen.queryByRole("heading", { name: "Let's talk protection" })).not.toBeInTheDocument();
+  fireEvent.mouseEnter(launcher);
+  expect(screen.getByRole("heading", { name: "Let's talk protection" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Get a quote", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Close chat assistant" }));
+  expect(launcher).toHaveAttribute("aria-expanded", "false");
+  expect(launcher).toHaveFocus();
+  fireEvent.mouseLeave(launcher);
+  fireEvent.click(launcher);
+  expect(screen.getByLabelText("Age group")).toBeInTheDocument();
+  fireEvent.keyDown(screen.getByLabelText("Age group"), { key: "Escape" });
+  expect(launcher).toHaveAttribute("aria-expanded", "false");
 });
 
 async function completeQuote() {
@@ -32,6 +50,7 @@ async function completeQuote() {
 test("guided quote uses pricing backend, explains locally, and emails only after confirmation", async () => {
   fetch.mockImplementation(() => respond(quote));
   render(<ChatAssistant />);
+  fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
   await completeQuote();
   expect(fetch.mock.calls[0][0]).toMatch(/\/predict$/);
   expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ AgeGroup: "30 to 34 years", YearsTogether: "5 years", Province: "Ont." });
@@ -54,6 +73,7 @@ test("reset prevents a late response from repopulating the cleared chat", async 
   let finish;
   fetch.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   render(<ChatAssistant />);
+  fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
   fireEvent.click(screen.getByRole("button", { name: "How is my premium calculated?" }));
   fireEvent.click(screen.getByRole("button", { name: "Start over" }));
   finish({ ok: true, json: async () => ({ reply: "Old response" }) });
@@ -63,6 +83,7 @@ test("reset prevents a late response from repopulating the cleared chat", async 
 
 test("unknown questions stay local and show suggested topics", () => {
   render(<ChatAssistant />);
+  fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
   fireEvent.change(screen.getByLabelText("Ask a product question"), { target: { value: "My name is Private" } });
   fireEvent.click(screen.getByRole("button", { name: "Send", exact: true }));
   expect(fetch).not.toHaveBeenCalled();
