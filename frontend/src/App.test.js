@@ -3,6 +3,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import App from "./App";
 
+beforeEach(() => { window.history.replaceState(null, "", "/#/quote"); });
+afterEach(() => { window.history.replaceState(null, "", "/"); });
+
 test("original quote form remains available and quotes without requiring email", async () => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
