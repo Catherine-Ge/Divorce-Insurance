@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Divorce-Insurance/static/css/main.7d1bdd55.css",
-    "main.js": "/Divorce-Insurance/static/js/main.13eff80f.js",
+    "main.css": "/Divorce-Insurance/static/css/main.7b0cfacb.css",
+    "main.js": "/Divorce-Insurance/static/js/main.fec72dcc.js",
     "static/js/453.35cd446c.chunk.js": "/Divorce-Insurance/static/js/453.35cd446c.chunk.js",
     "index.html": "/Divorce-Insurance/index.html",
-    "main.7d1bdd55.css.map": "/Divorce-Insurance/static/css/main.7d1bdd55.css.map",
-    "main.13eff80f.js.map": "/Divorce-Insurance/static/js/main.13eff80f.js.map",
+    "main.7b0cfacb.css.map": "/Divorce-Insurance/static/css/main.7b0cfacb.css.map",
+    "main.fec72dcc.js.map": "/Divorce-Insurance/static/js/main.fec72dcc.js.map",
     "453.35cd446c.chunk.js.map": "/Divorce-Insurance/static/js/453.35cd446c.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.7d1bdd55.css",
-    "static/js/main.13eff80f.js"
+    "static/css/main.7b0cfacb.css",
+    "static/js/main.fec72dcc.js"
   ]
 }
