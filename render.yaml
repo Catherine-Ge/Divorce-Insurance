@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: divorce-insurance-backend
+    name: Divorce-Insurance
     runtime: python
     rootDir: "Quote Website/Backend"
     buildCommand: pip install -r requirements.txt
@@ -10,4 +10,6 @@ services:
       - key: EMAIL_USER
         sync: false
       - key: BREVO_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false

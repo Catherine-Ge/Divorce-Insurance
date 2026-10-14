@@ -7,6 +7,9 @@ import pandas as pd
 app = Flask(__name__, static_folder='build', static_url_path='')
 CORS(app)
 
+from chatbot import register_chat_routes
+register_chat_routes(app)
+
 # Load the deployed artifacts bundled with this backend directory.
 model_dir = os.path.abspath(os.path.dirname(__file__))
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ChatAssistant from "./ChatAssistant";
 
 function App() {
   const [formData, setFormData] = useState({
@@ -44,6 +45,9 @@ function App() {
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial" }}>
       <h1>Divorce Insurance Quote</h1>
+      <p>Demo insurance product · Single upfront premium</p>
+      <ChatAssistant />
+      <h2>Or use the quote form</h2>
       <form onSubmit={handleSubmit}>
         <label>Age Group:
           <select name="AgeGroup" onChange={handleChange} required>
@@ -108,7 +112,6 @@ function App() {
           name="email"
           value={formData.email || ""}
           onChange={handleChange}
-          required
           />
         </label>
 
