@@ -34,6 +34,11 @@ export function findTopic(text) {
 }
 
 export default function ChatAssistant() {
+  const [open, setOpen] = useState(false);
+  const launcher = useRef(null);
+  function closePanel() {
+    setOpen(false);
+  }
   const [messages, setMessages] = useState([{ role: "assistant", text: WELCOME }]);
   const [text, setText] = useState("");
   const [step, setStep] = useState(null);
@@ -48,6 +53,11 @@ export default function ChatAssistant() {
   const bottom = useRef(null);
   const say = (role, message) => setMessages(old => [...old, { role, text: message }]);
   useEffect(() => { bottom.current?.scrollIntoView?.({ block: "nearest" }); }, [messages, step, busy]);
+  const previouslyOpen = useRef(false);
+  useEffect(() => {
+    if (!open && previouslyOpen.current) launcher.current?.focus();
+    previouslyOpen.current = open;
+  }, [open]);
   useEffect(() => () => { controller.current?.abort(); }, []);
   function reset() {
     version.current += 1;
@@ -137,11 +147,21 @@ export default function ChatAssistant() {
     finally { if (ticket === version.current) setBusy(false); }
   }
   return (
-    <section className="insurance-chat" aria-labelledby="chat-title">
+    <>
+      <button ref={launcher} type="button" className="chat-launcher" aria-label="Open chat assistant"
+        aria-expanded={open} aria-controls="insurance-chat-panel"
+        onMouseEnter={() => setOpen(true)}
+        onClick={() => setOpen(true)}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-4 3v-11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8Z" transform="translate(1 -1)" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M7 9h9M7 13h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+      </button>
+    <section id="insurance-chat-panel" className="insurance-chat" aria-labelledby="chat-title" hidden={!open}
+      onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); closePanel(); } }}>
       <header className="chat-header">
         <div><span className="chat-eyebrow">YOUR QUOTE ASSISTANT</span><h2 id="chat-title">Let's talk protection</h2><span className="chat-demo">Demo insurance product</span></div>
-        <button type="button" onClick={reset}>Start over</button>
+        <div className="chat-header-actions"><button type="button" onClick={reset}>Start over</button>
+        <button type="button" className="chat-close" aria-label="Close chat assistant" onClick={closePanel}><span aria-hidden="true">×</span></button></div>
       </header>
+      <div className="chat-body">
       <p className="chat-privacy">FAQ messages are matched to public topics before Gemini answers. Quote selections and email go directly to our backend. Please keep personal details out of the question box.</p>
       <div className="chat-transcript" role="log" aria-label="Conversation" aria-live="polite">
         {messages.map((message, index) => <div key={index} className={"chat-message " + message.role}><span className="chat-speaker">{message.role === "user" ? "You" : "Assistant"}</span><p>{message.text}</p></div>)}
@@ -180,6 +200,8 @@ export default function ChatAssistant() {
         <input id="chat-question" value={text} onChange={e => setText(e.target.value)} maxLength={500} placeholder="For example: How is the premium calculated?" disabled={busy || step !== null || emailMode} />
         <button disabled={busy || !text.trim() || step !== null || emailMode}>Send</button>
       </form>
+      </div>
     </section>
+    </>
   );
 }
