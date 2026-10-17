@@ -163,12 +163,11 @@ export default function ChatAssistant() {
     <section id="insurance-chat-panel" className="insurance-chat" aria-labelledby="chat-title" hidden={!open}
       onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); closePanel(); } }}>
       <header className="chat-header">
-        <div><span className="chat-eyebrow">YOUR QUOTE ASSISTANT</span><h2 id="chat-title">Let's talk protection</h2><span className="chat-demo">Demo insurance product</span></div>
+        <div><span className="chat-eyebrow">YOUR QUOTE ASSISTANT</span><h2 id="chat-title">Let's talk protection</h2></div>
         <div className="chat-header-actions"><button type="button" onClick={reset}>Start over</button>
         <button type="button" className="chat-close" aria-label="Close chat assistant" onClick={closePanel}><span aria-hidden="true">×</span></button></div>
       </header>
       <div className="chat-body">
-      <p className="chat-privacy">AI uses recent messages to answer follow-up questions. This is a demo; use fictitious relationship details. Get a quote uses our pricing model.</p>
       <div className="chat-transcript" role="log" aria-label="Conversation" aria-live="polite">
         {messages.map((message, index) => <div key={index} className={"chat-message " + message.role}><span className="chat-speaker">{message.role === "user" ? "You" : "Assistant"}</span><p>{message.text}</p></div>)}
         {busy && <p role="status">{streaming ? "Assistant is replying…" : "Working on your request."}</p>}
