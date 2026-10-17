@@ -78,6 +78,7 @@ test("guided quote uses pricing backend, explains locally, and emails only after
   render(<ChatAssistant />);
   fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
   await completeQuote();
+  expect(screen.getByText("Your personalized quote").closest('[role="log"]')).toBe(screen.getByRole("log", {name: "Conversation"}));
   expect(fetch.mock.calls[0][0]).toMatch(/\/predict$/);
   expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ AgeGroup: "30 to 34 years", YearsTogether: "5 years", Province: "Ont." });
   expect(screen.getByText("$1,124.70")).toBeInTheDocument();
@@ -90,6 +91,8 @@ test("guided quote uses pricing backend, explains locally, and emails only after
   fireEvent.click(screen.getByRole("button", { name: "Send quote" }));
   await screen.findByText("Your quote email has been submitted. Check your inbox and spam folder.");
   expect(JSON.parse(fetch.mock.calls[1][1].body).email).toBe("test@example.invalid");
+  fireEvent.click(screen.getByRole("button", {name: "Get a quote", exact: true}));
+  expect(screen.getByText("Your personalized quote")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Start over" }));
   expect(screen.queryByText("Your personalized quote")).not.toBeInTheDocument();
   expect(screen.queryByText("30 to 34 years")).not.toBeInTheDocument();
