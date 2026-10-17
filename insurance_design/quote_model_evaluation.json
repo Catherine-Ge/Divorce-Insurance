@@ -1,0 +1,65 @@
+{
+  "dataset_sha256": "708de6bf7f112af43f3bc73a63ae15095a7e0b70449aee293f1eee27a4410812",
+  "rows": 67320,
+  "held_out_rows": 13464,
+  "random_state": 42,
+  "sklearn_version": "1.6.1",
+  "threshold": 0.5,
+  "note": "Synthetic demo data. Baseline is the previous saved artifact on these rows, not a guaranteed independent holdout. Grouped-model metrics use a stratified held-out split before fitting the encoder or SMOTE. These results are not real-world predictive validation.",
+  "previous_artifact_reference": {
+    "accuracy": 0.6322786690433749,
+    "precision": 0.1308589607635207,
+    "recall": 0.4197278911564626,
+    "f1": 0.19951495553759094,
+    "roc_auc": 0.5578561956715319
+  },
+  "grouped_model_holdout": {
+    "accuracy": 0.5483511586452763,
+    "precision": 0.12688137239035444,
+    "recall": 0.5333333333333333,
+    "f1": 0.20499411687802327,
+    "roc_auc": 0.5522683110262614
+  },
+  "categories": {
+    "AgeGroup": [
+      "20 to 24 years",
+      "25 to 29 years",
+      "30 to 34 years",
+      "35 to 39 years",
+      "40 to 44 years",
+      "45 to 49 years",
+      "50 to 54 years",
+      "55 to 59 years",
+      "60 to 64 years",
+      "65 years and over",
+      "Under 20 years"
+    ],
+    "YearsTogether": [
+      "1 year",
+      "10 years or more",
+      "2 years",
+      "3 years",
+      "4 years",
+      "5 years",
+      "6 years",
+      "7 years",
+      "8 years",
+      "9 years",
+      "Under 1 year"
+    ],
+    "Province": [
+      "Alta.",
+      "B.C.",
+      "Man.",
+      "N.B.",
+      "N.L.",
+      "N.S.",
+      "N.W.T.",
+      "Ont.",
+      "P.E.I.",
+      "Que.",
+      "Sask.",
+      "Y.T."
+    ]
+  }
+}

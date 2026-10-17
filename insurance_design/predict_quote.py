@@ -1,11 +1,15 @@
 import pandas as pd
+try:
+    from .logistic_model import prepare_features
+except ImportError:
+    from logistic_model import prepare_features
 
 def predict_quote(age_group, years_together, province, model, encoder, threshold=0.25, cost=15000, margin=1.2):
     # Prepare input
     user_input = pd.DataFrame([[age_group, years_together, province]], columns=["AgeGroup", "YearsTogether", "Province"])
 
     # Encode
-    user_encoded = encoder.transform(user_input)
+    user_encoded = encoder.transform(prepare_features(user_input))
 
     # Predict probability
     prob = model.predict_proba(user_encoded)[0][1]
