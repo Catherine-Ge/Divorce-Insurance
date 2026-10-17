@@ -101,7 +101,7 @@ export default function ChatAssistant() {
           ...m, text: event.type === "delta" ? m.text + event.text : m.text,
           incomplete: event.type !== "done" || event.source !== "gemini",
         }));
-      });
+      }, active.signal);
     } catch (err) {
       if (ticket === version.current) setMessages(old => old.map((m, i) => i !== old.length - 1 ? m : {
         ...m, incomplete: true,

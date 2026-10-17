@@ -15,6 +15,6 @@ export function streamResponse(events) {
 test('decodes fragmented UTF-8 and detects truncated replies', async () => {
   const chunks = [];
   await readChatStream(streamResponse([{ type: 'delta', text: '你好 🌊' }, { type: 'done', source: 'gemini' }]), e => chunks.push(e));
-  expect(chunks[0].text).toBe('你好 🌊');
+  expect(chunks.filter(e => e.type === 'delta').map(e => e.text).join('')).toBe('你好 🌊');
   await expect(readChatStream(streamResponse([{ type: 'delta', text: 'Partial' }]), () => {})).rejects.toThrow('interrupted');
 });
