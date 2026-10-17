@@ -145,10 +145,6 @@ export const QUOTE_FIELDS = [
       {
         "value": "N.W.T.",
         "label": "Northwest Territories"
-      },
-      {
-        "value": "Nvt.",
-        "label": "Nunavut"
       }
     ],
     "label": "Province or territory"

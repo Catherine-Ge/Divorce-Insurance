@@ -98,7 +98,6 @@ function QuotePage() {
             <option value="B.C.">British Columbia</option>
             <option value="Y.T.">Yukon</option>
             <option value="N.W.T.">Northwest Territories</option>
-            <option value="Nvt.">Nunavut</option>
           </select>
         </label>
         <br /><br />
