@@ -1,4 +1,4 @@
-"""FAQ-only Gemini integration. No user messages or quote data reach the model."""
+"""Register streaming conversations and the legacy topic-only FAQ endpoint."""
 import json
 import os
 import re
@@ -25,6 +25,8 @@ TOPICS = {
 }
 
 def register_chat_routes(app):
+    from stream_chat import register_stream_chat
+    register_stream_chat(app)
     folder = Path(__file__).resolve().parent
     guide = (folder / "product_guide.md").read_text(encoding="utf-8")
     instructions = (folder / "chatbot_instructions.txt").read_text(encoding="utf-8")

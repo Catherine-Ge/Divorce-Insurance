@@ -1,63 +1,64 @@
 # Chat assistant
 
-The assistant supports approved product FAQs, guided quotes, local quote
-explanations, explicit email requests, suggested questions, and Start over.
-There is no scenario comparison feature.
+Free-form Gemini chat supports follow-up questions and streamed replies, alongside
+the existing guided quote and explicit email flows. No database is required.
 
-## Context and privacy
+## How it works
 
-product_guide.md stores the approved FAQ content. chatbot_instructions.txt
-controls Gemini's role and tone. Both are read at backend startup and included
-with each uncached FAQ request. Redeploy after editing either file.
+The browser POSTs recent conversation messages to `/chat/stream` (up to 12 messages,
+2,000 characters each and 16,000 characters total). The backend includes
+`chatbot_instructions.txt` and `product_guide.md` on every request, maps assistant
+messages to Gemini's `model` role, and calls `streamGenerateContent?alt=sse`.
+Gemini SSE chunks are relayed immediately as newline-delimited JSON events:
+`delta` contains text; `done` confirms completion and source; `error` marks an
+interrupted answer. The browser decodes across network/UTF-8 boundaries.
 
-The FAQ endpoint accepts only one allowlisted topic ID. The browser matches
-typed questions to those topics locally; unmatched questions show suggestions.
-This is a constrained FAQ assistant, not unrestricted multi-turn AI chat.
-Neither typed messages nor conversation history, quote inputs, results, or
-email addresses are forwarded to Gemini. Provider requests contain only the
-approved guide/instructions and canonical public FAQ question.
+History lives in React memory, survives closing/reopening the panel and page
+navigation, and disappears on refresh or Start over. Start over also aborts
+pending work; late responses cannot restore the cleared conversation. Stop reply
+cancels a generation. Incomplete and unavailable replies are excluded from later
+AI context. No chat history is persisted by this application.
 
-Guided selections call the existing /predict endpoint without email. Quote
-explanations use the returned numbers and known pricing formula locally.
-Email is sent only after entering an address and pressing Send quote.
-Start over aborts pending requests and clears local chat/quote state. It cannot
-undo emails already submitted or remove provider records.
+This is a demo: use fictitious relationship information. Typed chat and recent
+messages, including guided selections and displayed quote numbers when still in
+the recent history, are sent to Gemini. Dedicated email field contents are sent
+only to the existing quote/email backend; emails require pressing Send quote.
 
-## Configuration
+Quotes still come from `/predict` and the Python statistical model. The assistant
+cannot issue policies, send emails itself, or invent policy terms. Get a quote
+opens the guided form inside chat; arbitrary typed questions now go directly to
+Gemini without keyword classification. Explain my quote remains a local formula
+explanation; free-form follow-ups can reference the quote in recent history.
 
-Set GEMINI_API_KEY privately in the existing Divorce-Insurance Render service.
-The default model is gemini-3.5-flash-lite. Optionally set GEMINI_MODEL to a model
-available to your account; check its current pricing before changing models.
-Keep the Google project on its free tier if you want no paid API usage.
-Keep BREVO_API_KEY and verified EMAIL_USER for email delivery.
+The legacy `/chat` topic endpoint remains compatible with older deployments and
+retains its cached approved FAQ fallback. Streaming conversations are not cached
+and do not use that endpoint's six-second topic cooldown. Provider quota errors,
+missing keys and timeouts show an explicit unavailable message; partial replies
+are marked interrupted. FAQ and quote flows remain available. Review AI accuracy.
 
-Gemini responses for fixed topics are cached in process until restart, and calls
-are spaced by at least six seconds per process. Rate limits, missing credentials,
-timeouts, blocked or incomplete responses fall back to approved FAQ text.
-These limits are a demo quota safeguard, not a distributed rate limiter.
-Model replies are generated text and should be reviewed for accuracy.
+## Configuration and deployment
 
-## Deploy and test
+Keep `GEMINI_API_KEY`, `BREVO_API_KEY`, and verified `EMAIL_USER` in Render.
+The Gemini model defaults to `gemini-3.5-flash-lite`; `GEMINI_MODEL` can override it
+with a model available to your account. No new environment variables or packages
+are needed. Free-tier quota still applies to every conversation request.
 
-Merge the PR, deploy latest main on Render, then publish the React frontend:
+After merging, deploy latest main on the Divorce-Insurance Render service first,
+then publish GitHub Pages from your local frontend directory:
 
 ```powershell
 git pull origin main
-cd frontend
 npm install
 npm run deploy
 ```
 
-If already in frontend, omit cd frontend. The dependency typo is corrected in
-package.json; retain or resolve your earlier local fix before pulling if needed.
+Verify a question followed by “Can you explain that more simply?”, progressive
+text, Stop reply, Start over, guided quotes and an explicit email request.
+In browser Network, `/chat/stream` ending with `{"type":"done","source":"gemini"}`
+confirms a real successful Gemini response. Local tests mock Gemini; a live test
+requires the configured Render service. Backend checks:
+`python -m unittest discover -p "test_*.py"`; frontend:
+`npm test -- --watchAll=false --runInBand` and `npm run build`.
 
-Verify FAQs, all three quote selections, premium/payout display, Explain my
-quote, explicit email sending, Start over during a pending response, and the
-original quote form. A guide fallback is working behavior; source=gemini in the
-/chat JSON response verifies real model access. No keys appear in frontend code.
-
-Backend tests: run python test_chatbot.py from this directory.
-Frontend tests: npm test -- --watchAll=false --runInBand.
-
-The historical backend/build folder remains an outdated frontend copy. Use
-GitHub Pages as the user-facing site; this feature is published from frontend/.
+The historical backend/build folder is an outdated frontend copy. Publish the
+frontend/ app to GitHub Pages; Render serves the API.

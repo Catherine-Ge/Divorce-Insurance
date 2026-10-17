@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { QUOTE_FIELDS } from "./quoteOptions";
 import "./ChatAssistant.css";
+import { readChatStream } from "./chatStream";
 
 const API = "https://divorce-insurance.onrender.com";
 const WELCOME = "Hello! I can answer questions about Divorce Insurance or guide you through a quote. How can I help?";
@@ -15,24 +16,6 @@ const FAQS = [
   ["exclusions", "What exclusions apply?"],
   ["claims", "How would I make a claim?"],
 ];
-// Classify locally: only a public topic ID is sent to the FAQ API.
-export function findTopic(text) {
-  const q = text.toLowerCase();
-  if (/start over|reset|clear chat/.test(q)) return "reset";
-  if (/explain.*(my|this).*quote/.test(q)) return "explain";
-  if (/email|inbox|spam/.test(q)) return "email";
-  if (/claim/.test(q)) return "claims";
-  if (/exclu/.test(q)) return "exclusions";
-  if (/waiting|coverage|cover|begin/.test(q)) return "coverage";
-  if (/buy|purchase|policy/.test(q)) return "purchase";
-  if (/payout|pay out/.test(q)) return "payout";
-  if (/risk|probability|score/.test(q)) return "risk";
-  if (/premium|price|cost|payment/.test(q)) return "premium";
-  if (/information|input|need|data/.test(q)) return "inputs";
-  if (/quote/.test(q)) return "quote";
-  return null;
-}
-
 export default function ChatAssistant() {
   const [open, setOpen] = useState(false);
   const launcher = useRef(null);
@@ -48,6 +31,7 @@ export default function ChatAssistant() {
   const [emailMode, setEmailMode] = useState(false);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const controller = useRef(null);
   const version = useRef(0);
   const bottom = useRef(null);
@@ -69,15 +53,16 @@ export default function ChatAssistant() {
     controller.current?.abort();
     setMessages([{ role: "assistant", text: WELCOME }]);
     setText(""); setStep(null); setSelection(""); setDetails({});
-    setQuote(null); setEmailMode(false); setEmail(""); setBusy(false);
+    setQuote(null); setEmailMode(false); setEmail(""); setBusy(false); setStreaming(false);
   }
   async function callApi(path, payload) {
-    controller.current = new AbortController();
-    const timeout = setTimeout(() => controller.current?.abort(), 90000);
+    const active = new AbortController();
+    controller.current = active;
+    const timeout = setTimeout(() => active.abort(), 90000);
     try {
       const response = await fetch(API + path, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload), signal: controller.current.signal,
+        body: JSON.stringify(payload), signal: active.signal,
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The service could not complete your request.");
@@ -103,16 +88,43 @@ export default function ChatAssistant() {
       say("assistant", "Enter your email in the field below and select Send quote. It goes directly to the quote service, not Gemini.");
       return;
     }
-    if (!topic) { say("assistant", "I can help with quotes, premiums, payouts, email, and product FAQs. Choose a suggested question below. Please use Get a quote for personal details."); return; }
     const ticket = version.current;
-    setBusy(true);
+    const active = new AbortController();
+    controller.current = active;
+    const timeout = setTimeout(() => active.abort(), 90000);
+    const history = [...messages.slice(1).filter(m => !m.incomplete && m.text), { role: "user", text: label }]
+      .slice(-12).map(m => ({ role: m.role, content: m.text.slice(0, 2000) }));
+    while (history.length && history[0].role !== "user") history.shift();
+    while (history.reduce((sum, m) => sum + m.content.length, 0) > 16000) {
+      history.shift();
+      while (history.length && history[0].role !== "user") history.shift();
+    }
+    setMessages(old => [...old, { role: "assistant", text: "", incomplete: true }]);
+    setBusy(true); setStreaming(true);
     try {
-      const data = await callApi("/chat", { topic });
-      if (ticket === version.current) say("assistant", data.reply);
+      const response = await fetch(API + "/chat/stream", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }), signal: active.signal,
+      });
+      await readChatStream(response, event => {
+        if (ticket !== version.current) return;
+        setMessages(old => old.map((m, i) => i !== old.length - 1 ? m : {
+          ...m, text: event.type === "delta" ? m.text + event.text : m.text,
+          incomplete: event.type !== "done" || event.source !== "gemini",
+        }));
+      });
     } catch (err) {
-      if (ticket === version.current) say("assistant", "I couldn't load that answer. You can still get a quote. Please try again.");
-    } finally { if (ticket === version.current) setBusy(false); }
+      if (ticket === version.current) setMessages(old => old.map((m, i) => i !== old.length - 1 ? m : {
+        ...m, incomplete: true,
+        text: (m.text ? m.text + "\n\n" : "") + (active.signal.aborted
+          ? "Reply stopped. You can ask again." : "Reply unavailable or interrupted. Please try again, or use the FAQ page."),
+      }));
+    } finally {
+      clearTimeout(timeout);
+      if (ticket === version.current) { setBusy(false); setStreaming(false); }
+    }
   }
+
   async function choose(event) {
     event.preventDefault();
     if (!selection || busy) return;
@@ -131,7 +143,7 @@ export default function ChatAssistant() {
       const data = await callApi("/predict", next);
       if (ticket === version.current) {
         setQuote(data); setStep(null);
-        say("assistant", "Your quote is ready. Review the details below. You can ask for an explanation or request an email copy.");
+        say("assistant", `Your quote is ready: single upfront premium CAD $${data.premium}, payout CAD $${data.payout}, rounded model risk score ${(data.divorce_risk * 100).toFixed(1)}%. Review the details below. You can ask for an explanation or request an email copy.`);
       }
     } catch (err) {
       if (ticket === version.current) { setSelection(next.Province); say("assistant", err.message + " Select Get quote to retry."); }
@@ -167,10 +179,11 @@ export default function ChatAssistant() {
         <button type="button" className="chat-close" aria-label="Close chat assistant" onClick={closePanel}><span aria-hidden="true">×</span></button></div>
       </header>
       <div className="chat-body">
-      <p className="chat-privacy">FAQ messages are matched to public topics before Gemini answers. Quote selections and email go directly to our backend. Please keep personal details out of the question box.</p>
+      <p className="chat-privacy">AI uses recent messages to answer follow-up questions. This is a demo; use fictitious relationship details. Get a quote uses our pricing model.</p>
       <div className="chat-transcript" role="log" aria-label="Conversation" aria-live="polite">
         {messages.map((message, index) => <div key={index} className={"chat-message " + message.role}><span className="chat-speaker">{message.role === "user" ? "You" : "Assistant"}</span><p>{message.text}</p></div>)}
-        {busy && <p role="status">Working on your request…</p>}
+        {busy && <p role="status">{streaming ? "Assistant is replying…" : "Working on your request."}</p>}
+        {streaming && <button type="button" onClick={() => controller.current?.abort()}>Stop reply</button>}
         <div ref={bottom} />
       </div>
       {step !== null && <form className="chat-input" onSubmit={choose}>
@@ -200,7 +213,7 @@ export default function ChatAssistant() {
         <button type="button" disabled={busy} onClick={() => ask("quote", "Get a quote")}>Get a quote</button>
         {FAQS.map(([topic, label]) => <button key={topic} type="button" disabled={busy} onClick={() => ask(topic, label)}>{label}</button>)}
       </div>
-      <form className="chat-input" onSubmit={e => { e.preventDefault(); if (!text.trim()) return; const question = text.trim(); setText(""); ask(findTopic(question), question); }}>
+      <form className="chat-input" onSubmit={e => { e.preventDefault(); if (!text.trim()) return; const question = text.trim(); setText(""); ask(null, question); }}>
         <label htmlFor="chat-question">Ask a product question</label>
         <input id="chat-question" value={text} onChange={e => setText(e.target.value)} maxLength={500} placeholder="For example: How is the premium calculated?" disabled={busy || step !== null || emailMode} />
         <button disabled={busy || !text.trim() || step !== null || emailMode}>Send</button>
@@ -210,3 +223,4 @@ export default function ChatAssistant() {
     </>
   );
 }
+
