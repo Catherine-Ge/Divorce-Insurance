@@ -1,4 +1,4 @@
-.insurance-chat { position: fixed; z-index: 1000; right: 24px; bottom: 96px; width: 420px; max-width: calc(100vw - 32px); height: min(680px, calc(100dvh - 120px)); display: flex; flex-direction: column; margin: 0; border: 1px solid #cfe5f0; border-radius: 20px; background: #fff; color: #075e82; overflow: hidden; text-align: left; box-shadow: 0 14px 40px #075e8210; }
+.insurance-chat { position: fixed; z-index: 1000; right: 24px; bottom: 96px; width: 420px; max-width: calc(100vw - 32px); height: auto; max-height: min(680px, calc(100dvh - 120px)); display: flex; flex-direction: column; margin: 0; border: 1px solid #cfe5f0; border-radius: 20px; background: #fff; color: #075e82; overflow: hidden; text-align: left; box-shadow: 0 14px 40px #075e8210; }
 .chat-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; background: #075e82; color: white; }
 .chat-header h2 { margin: .4rem 0; font-size: 1.55rem; }
 .chat-eyebrow { font-size: .7rem; letter-spacing: .12em; color: #bcecff; }
@@ -35,6 +35,6 @@
 .chat-header h2 { font-size: 1.15rem; }
 .chat-header-actions button { white-space: nowrap; font-size: .75rem; }
 @media (max-width: 500px) {
-  .insurance-chat { right: 16px; bottom: 88px; width: calc(100vw - 32px); height: min(600px, calc(100dvh - 112px)); }
+  .insurance-chat { right: 16px; bottom: 88px; width: calc(100vw - 32px); height: auto; max-height: min(600px, calc(100dvh - 112px)); }
   .chat-launcher { right: 16px; bottom: 16px; }
 }
