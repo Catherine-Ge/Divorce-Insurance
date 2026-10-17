@@ -24,7 +24,7 @@ export default function ChatAssistant() {
   const controller = useRef(null);
   const version = useRef(0);
   const bottom = useRef(null);
-  const say = (role, message) => setMessages(old => [...old, { role, text: message }]);
+  const say = (role, message, extra = {}) => setMessages(old => [...old, { role, text: message, ...extra }]);
   useEffect(() => { bottom.current?.scrollIntoView?.({ block: "nearest" }); }, [messages, step, busy]);
   useEffect(() => {
     const show = () => setOpen(true);
@@ -62,17 +62,18 @@ export default function ChatAssistant() {
     setDetails({}); setQuote(null); setStep(0); setSelection(""); setEmailMode(false); setEmail("");
     say("assistant", "Let's prepare your quote. First, select your age group below.");
   }
-  function explain() {
-    if (!quote) { say("assistant", "Get a quote first, then I can explain your calculated premium and payout."); return; }
+  function explain(selectedQuote = quote) {
+    if (!selectedQuote) { say("assistant", "Get a quote first, then I can explain your calculated premium and payout."); return; }
     say("assistant", "Your single upfront premium is calculated as $500 plus the model's risk score multiplied by $1,000. The payout is $10,000 above a 50% score, otherwise $5,000. The displayed risk score is rounded, so calculating from it may differ slightly from your premium. The score comes from simulated data and is not a reliable prediction of your relationship.");
   }
-  async function ask(topic, label) {
+  async function ask(topic, label, snapshot = null) {
     if (busy) return;
     if (topic === "reset") { reset(); return; }
     say("user", label);
     if (topic === "quote") { beginQuote(); return; }
-    if (topic === "explain") { explain(); return; }
-    if (topic === "email" && quote && step === null) {
+    if (topic === "explain") { explain(snapshot?.quote || quote); return; }
+    if (topic === "email" && (snapshot?.quote || quote) && step === null) {
+      if (snapshot) { setQuote(snapshot.quote); setDetails(snapshot.details); }
       setEmailMode(true);
       say("assistant", "Enter your email in the field below and select Send quote. It goes directly to the quote service, not Gemini.");
       return;
@@ -132,7 +133,7 @@ export default function ChatAssistant() {
       const data = await callApi("/predict", next);
       if (ticket === version.current) {
         setQuote(data); setStep(null);
-        say("assistant", `Your quote is ready: single upfront premium CAD $${data.premium}, payout CAD $${data.payout}, rounded model risk score ${(data.divorce_risk * 100).toFixed(1)}%. Review the details below. You can ask for an explanation or request an email copy.`);
+        say("assistant", `Your quote is ready: single upfront premium CAD $${data.premium}, payout CAD $${data.payout}, rounded model risk score ${(data.divorce_risk * 100).toFixed(1)}%. Review the details below. You can ask for an explanation or request an email copy.`, { quote: data, details: next });
       }
     } catch (err) {
       if (ticket === version.current) { setSelection(next.Province); say("assistant", err.message + " Select Get quote to retry."); }
@@ -169,7 +170,17 @@ export default function ChatAssistant() {
       </header>
       <div className="chat-body">
       <div className="chat-transcript" role="log" aria-label="Conversation" aria-live="polite">
-        {messages.map((message, index) => <div key={index} className={"chat-message " + message.role}><span className="chat-speaker">{message.role === "user" ? "You" : "Assistant"}</span><p>{message.text}</p></div>)}
+        {messages.map((message, index) => <React.Fragment key={index}><div className={"chat-message " + message.role}><span className="chat-speaker">{message.role === "user" ? "You" : "Assistant"}</span><p>{message.text}</p></div>
+      {message.quote && <div className="chat-quote">
+        <h3>Your personalized quote</h3>
+        <p className="chat-price">{Number(message.quote.premium).toLocaleString("en-CA", { style: "currency", currency: "CAD" })}<span>Single upfront premium</span></p>
+        <p>Estimated risk score: {(message.quote.divorce_risk * 100).toFixed(1)}%</p>
+        <p>Payout: {Number(message.quote.payout).toLocaleString("en-CA", { style: "currency", currency: "CAD" })}</p>
+        <p className="chat-note">Demo quote based on simulated data. Policy purchase and claims are unavailable.</p>
+        <button type="button" disabled={busy || step !== null} onClick={() => ask("explain", "Explain my quote", message)}>Explain my quote</button>
+        <button type="button" disabled={busy || step !== null} onClick={() => ask("email", "Email my quote", message)}>Email my quote</button>
+      </div>}
+        </React.Fragment>)}
         {busy && <p role="status">{streaming ? "Assistant is replying…" : "Working on your request."}</p>}
         {streaming && <button type="button" onClick={() => controller.current?.abort()}>Stop reply</button>}
         <div ref={bottom} />
@@ -182,15 +193,6 @@ export default function ChatAssistant() {
         </select>
         <button disabled={busy || !selection}>{step === 2 ? "Get quote" : "Continue"}</button>
       </form>}
-      {quote && <div className="chat-quote">
-        <h3>Your personalized quote</h3>
-        <p className="chat-price">{Number(quote.premium).toLocaleString("en-CA", { style: "currency", currency: "CAD" })}<span>Single upfront premium</span></p>
-        <p>Estimated risk score: {(quote.divorce_risk * 100).toFixed(1)}%</p>
-        <p>Payout: {Number(quote.payout).toLocaleString("en-CA", { style: "currency", currency: "CAD" })}</p>
-        <p className="chat-note">Demo quote based on simulated data. Policy purchase and claims are unavailable.</p>
-        <button type="button" disabled={busy} onClick={() => ask("explain", "Explain my quote")}>Explain my quote</button>
-        <button type="button" disabled={busy} onClick={() => ask("email", "Email my quote")}>Email my quote</button>
-      </div>}
       {emailMode && <form className="chat-input" onSubmit={sendEmail}>
         <label htmlFor="chat-email">Email for your quote</label>
         <input id="chat-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required disabled={busy} />

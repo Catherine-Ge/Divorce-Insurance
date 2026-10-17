@@ -38,3 +38,5 @@
   .insurance-chat { right: 16px; bottom: 88px; width: calc(100vw - 32px); height: auto; max-height: min(600px, calc(100dvh - 112px)); }
   .chat-launcher { right: 16px; bottom: 16px; }
 }
+
+.chat-transcript .chat-quote { margin: .75rem 0; padding: 1rem; }
