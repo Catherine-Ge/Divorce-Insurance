@@ -1,4 +1,5 @@
 import os
+import re
 import joblib
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -61,7 +62,12 @@ def predict():
     fields = ["AgeGroup", "YearsTogether", "Province"]
     if any(not isinstance(data.get(field), str) or not data[field].strip() for field in fields):
         return jsonify({"error": "Please complete all quote fields."}), 400
-    df = pd.DataFrame([{field: data[field] for field in fields}])
+    features = {field: data[field] for field in fields}
+    # Keep older clients that submit individual 10-50 year values compatible.
+    years = re.fullmatch(r"(\d+) years?", features["YearsTogether"])
+    if years and 10 <= int(years.group(1)) <= 50:
+        features["YearsTogether"] = "10 years or more"
+    df = pd.DataFrame([features])
     if "email" in df.columns:
         df = df.drop(columns=["email"])  #remove the email before encoding
     try:

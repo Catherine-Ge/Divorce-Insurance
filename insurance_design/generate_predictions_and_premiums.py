@@ -1,4 +1,8 @@
 import pandas as pd
+try:
+    from .logistic_model import prepare_features
+except ImportError:
+    from logistic_model import prepare_features
 import numpy as np
 import joblib
 
@@ -18,7 +22,7 @@ model = joblib.load("logistic_model.pkl")
 encoder = joblib.load("onehot_encoder.pkl")  # Adjust path if needed
 
 # === Step 2: Predict divorce probability ===
-X_encoded = encoder.transform(df_features)
+X_encoded = encoder.transform(prepare_features(df_features))
 probs = model.predict_proba(X_encoded)[:, 1]
 
 # === Step 3: Calculate premium for each row ===
