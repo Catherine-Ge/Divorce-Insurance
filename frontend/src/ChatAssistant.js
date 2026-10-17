@@ -5,17 +5,6 @@ import { readChatStream } from "./chatStream";
 
 const API = "https://divorce-insurance.onrender.com";
 const WELCOME = "Hello! I can answer questions about Divorce Insurance or guide you through a quote. How can I help?";
-const FAQS = [
-  ["premium", "How is my premium calculated?"],
-  ["inputs", "What information do you need?"],
-  ["risk", "What does the risk score mean?"],
-  ["payout", "What payout does the quote show?"],
-  ["email", "Can you email my quote?"],
-  ["purchase", "Can I purchase a policy?"],
-  ["coverage", "When would coverage begin?"],
-  ["exclusions", "What exclusions apply?"],
-  ["claims", "How would I make a claim?"],
-];
 export default function ChatAssistant() {
   const [open, setOpen] = useState(false);
   const launcher = useRef(null);
@@ -211,7 +200,6 @@ export default function ChatAssistant() {
       </form>}
       <div className="chat-suggestions">
         <button type="button" disabled={busy} onClick={() => ask("quote", "Get a quote")}>Get a quote</button>
-        {FAQS.map(([topic, label]) => <button key={topic} type="button" disabled={busy} onClick={() => ask(topic, label)}>{label}</button>)}
       </div>
       <form className="chat-input" onSubmit={e => { e.preventDefault(); if (!text.trim()) return; const question = text.trim(); setText(""); ask(null, question); }}>
         <label htmlFor="chat-question">Ask a product question</label>

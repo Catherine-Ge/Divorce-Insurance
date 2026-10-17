@@ -100,7 +100,8 @@ test("reset prevents a late response from repopulating the cleared chat", async 
   fetch.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   render(<ChatAssistant />);
   fireEvent.click(screen.getByRole("button", { name: "Open chat assistant" }));
-  fireEvent.click(screen.getByRole("button", { name: "How is my premium calculated?" }));
+  fireEvent.change(screen.getByLabelText("Ask a product question"), {target: {value: "How is my premium calculated?"}});
+  fireEvent.click(screen.getByRole("button", {name: "Send", exact: true}));
   fireEvent.click(screen.getByRole("button", { name: "Start over" }));
   finish(await streamed("Old response"));
   await waitFor(() => expect(screen.queryByText("Old response")).not.toBeInTheDocument());
@@ -111,7 +112,8 @@ test("network failure leaves quote actions usable", async () => {
   fetch.mockRejectedValue(new Error("offline"));
   render(<ChatAssistant />);
   fireEvent.click(screen.getByRole("button", {name: "Open chat assistant"}));
-  fireEvent.click(screen.getByRole("button", {name: "How is my premium calculated?"}));
+  fireEvent.change(screen.getByLabelText("Ask a product question"), {target: {value: "How is my premium calculated?"}});
+  fireEvent.click(screen.getByRole("button", {name: "Send", exact: true}));
   await screen.findByText(/Reply unavailable or interrupted/);
   expect(screen.getByRole("button", {name: "Get a quote", exact: true})).toBeEnabled();
 });
@@ -138,7 +140,8 @@ test("shows partial text before completion and stops an in-flight reply", async 
   });
   render(<ChatAssistant />);
   fireEvent.click(screen.getByRole('button', {name: 'Open chat assistant'}));
-  fireEvent.click(screen.getByRole('button', {name: 'How is my premium calculated?'}));
+  fireEvent.change(screen.getByLabelText("Ask a product question"), {target: {value: "How is my premium calculated?"}});
+  fireEvent.click(screen.getByRole("button", {name: "Send", exact: true}));
   await screen.findByText('Partial text');
   expect(pending).toBe(true);
   fireEvent.click(screen.getByRole('button', {name: 'Stop reply'}));
